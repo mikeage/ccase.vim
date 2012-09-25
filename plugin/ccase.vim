@@ -993,10 +993,9 @@ fun! s:MakeActiv()
 
     " Allow to use the default or no comment
     if l:comment =~ "-nc" || l:comment == "" || l:comment == "."
-      exe "!cleartool mkactiv ".l:set_activity." -nc ".l:new_activity
+      exe "!cleartool mkactiv ".l:set_activity." -nc -headline \"".l:new_activity."\" -force"
     else
-      exe "!cleartool mkactiv ".l:set_activity." -c \"".l:comment."\" ".
-            \ l:new_activity
+      exe "!cleartool mkactiv ".l:set_activity." -c \"".l:comment."\" -headline \"".l:new_activity."\" -force"
     endif
   else
     echohl Error
@@ -1012,13 +1011,13 @@ fun! s:ListActiv(current_act)
 "     List current clearcase activity
 " ===========================================================================
   if a:current_act == "current"
-    silent let @"=system("cleartool lsactiv -cact -fmt \'\%n\t\%c\'")
+    silent let @"=system("cleartool lsactiv -cact -fmt \"\%[headline]p\\t\\(\%n\\)\\n\"")
     let l:tmp = substitute(@", "\n", "", "g")
     echohl Question
     echo l:tmp
     echohl None
   else " List all actvities
-    call s:CtCmd("!cleartool lsactiv -fmt \'\\%n\t\\%c\'", "activity_list")
+    call s:CtCmd("!cleartool lsactiv -fmt \"\\%[headline]p\\t\\(\\%n\\)\\n\"", "activity_list")
   endif
 endfun " s:ListActiv
 com! -nargs=0 -complete=command Ctlsa call <SID>ListActiv("")
@@ -1054,7 +1053,7 @@ fun! s:CtShowActiv()
 "     Function to show detailed info on the activity tag in the current line
 "     of the activity_list window.
 " ===========================================================================
-  let l:activity=substitute(getline('.'), '^\(.\+\)\t.*$', '\1', 'g')
+  let l:activity = substitute(getline('.'), '^.*\t(\(\S\+\))$', '\1', '')
   call s:CtCmd("!cleartool lsactiv -l ".l:activity, "activity_details")
 endfun " s:CtShowActiv
 
@@ -1103,7 +1102,7 @@ fun! s:CtCmd(cmd_string, ...)
     let l:tmpFile = tempname()
 
     " Capture output in a generated temp file
-    exe a:cmd_string." > ".l:tmpFile
+    silent exe a:cmd_string." > ".l:tmpFile
 
     let l:results_name = "ccase_results"
 
@@ -1152,7 +1151,7 @@ endfun " s:CtCmd
 fu! s:CtChangeActiv()
 " Do the operations for a change in activity from the [activity_list] buffer
 " ===========================================================================
-  let l:activity = substitute(getline("."), '^\(\S\+\)\s.*$', '\1', '')
+  let l:activity = substitute(getline("."), '^.*\t(\(\S\+\))$', '\1', '')
   call s:SetActiv(l:activity)
   bd
 endfun " s:CtChangeActiv
