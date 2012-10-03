@@ -1,0 +1,6 @@
+*~
+*.swo
+*.swp
+tags
+# ccase.vim generates doc/ccase.txt on the first load
+doc/ccase.txt
